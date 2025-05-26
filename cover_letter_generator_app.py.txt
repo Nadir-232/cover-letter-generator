@@ -1,0 +1,51 @@
+import streamlit as st
+import openai
+
+st.set_page_config(page_title="Cover Letter Generator", page_icon="📄")
+
+st.title("Personalized Cover Letter Generator")
+st.write("Upload your CV text and paste the job description. We'll generate a tailored cover letter for you.")
+
+# Upload CV text or paste manually
+cv_text = st.text_area("Paste your CV text here", height=200)
+
+# Upload job description text
+job_desc = st.text_area("Paste the Job Description here", height=200)
+
+openai_api_key = st.text_input("Enter your OpenAI API Key", type="password")
+
+def generate_cover_letter(cv, job, api_key):
+    openai.api_key = api_key
+    prompt = f\"\"\"You are a helpful assistant that writes an honest and tailored cover letter for a job application.
+Use the following CV information and job description to generate the cover letter.
+
+CV:
+{cv}
+
+Job Description:
+{job}
+
+Write a clear, honest cover letter that highlights relevant skills from the CV aligned to the job description.
+\"\"\"
+    try:
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            max_tokens=500,
+            temperature=0.7
+        )
+        return response.choices[0].text.strip()
+    except Exception as e:
+        return f"Error: {e}"
+
+if st.button("Generate Cover Letter"):
+    if not cv_text or not job_desc or not openai_api_key:
+        st.warning("Please provide your CV text, job description, and OpenAI API key.")
+    else:
+        with st.spinner("Generating cover letter..."):
+            cover_letter = generate_cover_letter(cv_text, job_desc, openai_api_key)
+            st.subheader("Generated Cover Letter")
+            st.text_area("", cover_letter, height=300)
+
+st.write("---")
+st.write("Powered by OpenAI GPT-3 and Streamlit")
